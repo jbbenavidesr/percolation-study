@@ -55,4 +55,4 @@ def label_cluster(lattice: np.array) -> np.array:
 if __name__ == "__main__":
     from sitepercolation import run_square_site_simulation
 
-    label_cluster(run_square_site_simulation(10000, 0.6))
+    print(label_cluster(run_square_site_simulation(10, 0.6)))
