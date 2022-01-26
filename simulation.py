@@ -27,16 +27,28 @@ def has_percolating_cluster(lattice: np.array) -> bool:
         > 0
     )
 
-    return vertical_cluster or horizontal_cluster
+    return vertical_cluster and horizontal_cluster
 
 
 def percolation_density(sequence: np.array) -> int:
     """Determine de density at which a given sequence percolates"""
     volume = len(sequence)
-    for i in range(volume):
+    i = int(volume / 2)
+    step = int(i / 2)
+    while True:
         lattice = get_state_from_sequence(sequence, i)
         if has_percolating_cluster(lattice):
-            return i / volume
+            if step == 0:
+                i = i - 1
+                continue
+
+            i = i - step
+            step = int(step / 2)
+        else:
+            if step == 0:
+                return (i + 1) / volume
+            i = i + step
+            step = int(step / 2)
 
 
 rng = np.random.default_rng(42)
@@ -58,9 +70,9 @@ def run_simulation(
     return densities
 
 
-size = 4
-number_of_runs = 1
-rng = np.random.default_rng(seed=42)
+size = 1024
+number_of_runs = 10
+rng = np.random.default_rng(seed=31415926)
 percolation_densities = run_simulation(size, number_of_runs, rng)
 
-np.savetxt(f"data/run{number_of_runs}_size{size}.txt", percolation_densities)
+np.savetxt(f"data_both/run{number_of_runs}_size{size}.txt", percolation_densities)

@@ -6,12 +6,14 @@ name = "pypi"
 [packages]
 numpy = "*"
 matplotlib = "*"
+faunadb = "*"
+scipy = "*"
 
 [dev-packages]
 black = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true

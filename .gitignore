@@ -9,3 +9,4 @@ env
 
 # editor
 .vscode
+.env
