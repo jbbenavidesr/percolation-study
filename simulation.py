@@ -70,9 +70,10 @@ def run_simulation(
     return densities
 
 
-size = 1024
-number_of_runs = 10
+size = 2048
+number_of_runs = 100
 rng = np.random.default_rng(seed=31415926)
+print(size)
 percolation_densities = run_simulation(size, number_of_runs, rng)
 
 np.savetxt(f"data_both/run{number_of_runs}_size{size}.txt", percolation_densities)

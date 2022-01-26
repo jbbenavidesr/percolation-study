@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 from scipy.special import erf
 from scipy.optimize import curve_fit
 
+from estimators import jackknife
+
 plt.style.use("ggplot")
 
 data_files = Path("data_both/")
@@ -37,17 +39,24 @@ for file in data_files.iterdir():
         data[size] = {"data": file_content, "runs": length}
 
 
+def get_pi_curve(data):
+    steps = np.linspace(0, 1, 150)
+
+    prob = np.zeros_like(steps)
+
+    for i, step in enumerate(steps):
+        count = (data < step).sum()
+        prob[i] = count / len(data)
+
+    return steps, prob
+
+
 def graph_probabilities_vs_densities(data, save=False, filename="graph.png"):
     plt.figure(figsize=(15, 8))
 
-    steps = np.linspace(0, 1, 150)
-
     for size in sorted(data):
-        prob = np.zeros_like(steps)
 
-        for i, step in enumerate(steps):
-            count = (data[size]["data"] < step).sum()
-            prob[i] = count / data[size]["runs"]
+        steps, prob = get_pi_curve(data[size]["data"])
 
         plt.plot(steps, prob, label=rf"$L = {size}$")
 
@@ -73,36 +82,51 @@ def erf_func(phi, delta, avg):
     return 0.5 + 0.5 * erf((phi - avg) / delta)
 
 
+def get_delta(data):
+    steps, prob = get_pi_curve(data)
+
+    params, extras = curve_fit(erf_func, steps, prob)
+
+    return params[0]
+
+
+def get_avg(data):
+    steps, prob = get_pi_curve(data)
+
+    params, extras = curve_fit(erf_func, steps, prob)
+
+    return params[1]
+
+
 def get_delta_and_avg(data, simple=True) -> tuple:
     if simple:
         return data.std(), data.mean()
 
-    steps = np.linspace(0, 1, 150)
-
-    prob = np.zeros_like(steps)
-
-    for i, step in enumerate(steps):
-        count = (data < step).sum()
-        prob[i] = count / len(data)
+    steps, prob = get_pi_curve(data)
 
     params, extras = curve_fit(erf_func, steps, prob)
-    perr = np.sqrt(np.diag(extras))
 
-    return params[0], params[1], perr
+    delta_err = jackknife(data, get_delta)
+    avg_err = jackknife(data, get_avg)
+
+    return params[0], params[1], delta_err, avg_err
 
 
 for size in sorted(data):
-    delta, avg, err = get_delta_and_avg(data[size]["data"], False)
+    delta, avg, delta_err, avg_err = get_delta_and_avg(data[size]["data"], False)
 
     new_data[size] = {
         "delta": delta,
         "avg": avg,
-        "err": err,
+        "delta_err": delta_err,
+        "avg_err": avg_err,
     }
 
 log_l = [np.log(size) for size in new_data]
 log_delta = [np.log(1 / new_data[size]["delta"]) for size in new_data]
-log_err = [-1 * new_data[size]["err"][0] / new_data[size]["delta"] for size in new_data]
+log_err = [
+    -1 * new_data[size]["delta_err"] / new_data[size]["delta"] for size in new_data
+]
 
 
 linear_model = np.polyfit(log_l[:], log_delta[:], 1)
@@ -120,13 +144,15 @@ plt.show()
 
 delta = [new_data[size]["delta"] for size in new_data]
 avg = [new_data[size]["avg"] for size in new_data]
+delta_err = [new_data[size]["delta_err"] for size in new_data]
+avg_err = [new_data[size]["avg_err"] for size in new_data]
 
 linear_model = np.polyfit(delta[4:], avg[4:], 1)
 lin_func = np.poly1d(linear_model)
 
 
 plt.close()
-plt.plot(delta, avg, linestyle="none", marker=".")
+plt.errorbar(delta, avg, xerr=delta_err, yerr=avg_err, linestyle="none", marker=".")
 plt.plot(delta, lin_func(delta), label=rf"$ p_{{crit}} = {linear_model[1].round(4)}$")
 plt.title("Determinación del punto crítico")
 plt.xlabel(r"$\Delta (L)$")
