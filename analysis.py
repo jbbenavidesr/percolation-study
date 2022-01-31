@@ -5,12 +5,12 @@ from matplotlib import pyplot as plt
 from scipy.special import erf
 from scipy.optimize import curve_fit
 
-from estimators import jackknife
+from estimators import jackknife, bootstrap
 
-plt.style.use("ggplot")
+# plt.style.use("seaborn")
 
-data_files = Path("data_both/")
 
+data_files = Path("data_jigsaw_no_borders/")
 
 def get_size(file):
     file_name = str(file)
@@ -81,6 +81,8 @@ new_data = {}
 def erf_func(phi, delta, avg):
     return 0.5 + 0.5 * erf((phi - avg) / delta)
 
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 def get_delta(data):
     steps, prob = get_pi_curve(data)
@@ -100,20 +102,23 @@ def get_avg(data):
 
 def get_delta_and_avg(data, simple=True) -> tuple:
     if simple:
-        return data.std(), data.mean()
+        delta, delta_err = jackknife(data, np.std)
+        avg, avg_err = jackknife(data, np.mean)
 
-    steps, prob = get_pi_curve(data)
+    else:
+        # steps, prob = get_pi_curve(data)
 
-    params, extras = curve_fit(erf_func, steps, prob)
+        # params, extras = curve_fit(erf_func, steps, prob)
 
-    delta_err = jackknife(data, get_delta)
-    avg_err = jackknife(data, get_avg)
+        delta, delta_err = jackknife(data, get_delta)
+        avg, avg_err = jackknife(data, get_avg)
 
-    return params[0], params[1], delta_err, avg_err
+    return delta, avg, delta_err, avg_err
+    # return params[0], params[1], delta_err, avg_err
 
 
 for size in sorted(data):
-    delta, avg, delta_err, avg_err = get_delta_and_avg(data[size]["data"], False)
+    delta, avg, delta_err, avg_err = get_delta_and_avg(data[size]["data"], simple=True)
 
     new_data[size] = {
         "delta": delta,
@@ -122,14 +127,14 @@ for size in sorted(data):
         "avg_err": avg_err,
     }
 
-log_l = [np.log(size) for size in new_data]
+log_l = [np.log(size - 2) for size in new_data]
 log_delta = [np.log(1 / new_data[size]["delta"]) for size in new_data]
 log_err = [
     -1 * new_data[size]["delta_err"] / new_data[size]["delta"] for size in new_data
 ]
 
 
-linear_model = np.polyfit(log_l[:], log_delta[:], 1)
+linear_model = np.polyfit(log_l[3:], log_delta[3:], 1)
 lin_func = np.poly1d(linear_model)
 
 
@@ -147,7 +152,7 @@ avg = [new_data[size]["avg"] for size in new_data]
 delta_err = [new_data[size]["delta_err"] for size in new_data]
 avg_err = [new_data[size]["avg_err"] for size in new_data]
 
-linear_model = np.polyfit(delta[4:], avg[4:], 1)
+linear_model = np.polyfit(delta[:], avg[:], 1)
 lin_func = np.poly1d(linear_model)
 
 
@@ -163,3 +168,19 @@ plt.show()
 
 # graph_probabilities_vs_densities(data, True, "images/prob_density.png")
 graph_probabilities_vs_densities(data)
+
+
+plt.close()
+
+steps = np.linspace(0, 1, 150)
+
+for size in sorted(data):
+    fig, ax1 = plt.subplots()
+    ax1.hist(data[size]["data"],bins=int(np.sqrt(len(data[size]["data"]))+1), density=True, histtype='step')
+
+    ax2 = ax1.twinx()
+
+    ax2.plot(steps, gaussian(steps, new_data[size]['avg'], new_data[size]['delta']))
+
+    plt.title(size)
+    plt.show()

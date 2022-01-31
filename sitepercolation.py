@@ -29,7 +29,8 @@ def get_random_sequence(
     return sequence
 
 
-def get_state_from_sequence(history: np.array, step: int) -> np.array:
+
+def get_state_from_sequence(history: np.array, step: int, borders: bool = True) -> np.array:
     l_squared = len(history)
     l = int(np.sqrt(l_squared))
 
@@ -37,7 +38,14 @@ def get_state_from_sequence(history: np.array, step: int) -> np.array:
 
     lattice[history[:step]] = 1
 
-    return lattice.reshape((l, l))
+    lattice = lattice.reshape((l, l))
+
+    if borders:
+        return lattice
+    
+    return lattice[1:-1, 1:-1]
+    
+    
 
 
 if __name__ == "__main__":

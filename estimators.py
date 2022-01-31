@@ -17,12 +17,13 @@ def jackknife(data, measure, n_groups=10):
         sample = []
         for j in range(n_groups):
             if j != i:
-                for point in sample_list[j]:
-                    sample.append(point)
+                sample += list(sample_list[j])
 
         measure_list.append(measure(sample))
 
-    return (n_groups - 1) / np.sqrt(n_groups) * np.std(measure_list)
+    return np.mean(measure_list), (n_groups - 1) / np.sqrt(n_groups) * np.std(
+        measure_list
+    )
 
 
 def bootstrap(data, measure, sample_size=-1, n_samples=1000):
