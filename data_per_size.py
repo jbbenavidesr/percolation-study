@@ -25,5 +25,5 @@ def get_densities(size, borders = True):
     return densities
 
 for size in sizes:
-    densities = get_densities(size, borders=True)
-    np.savetxt(f"data_jigsaw_borders/size{int(np.sqrt(size))}.txt", densities)
+    densities = get_densities(size, borders=False)
+    np.savetxt(f"data_jigsaw_no_borders/size{int(np.sqrt(size))}.txt", densities)

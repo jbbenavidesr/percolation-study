@@ -21,7 +21,7 @@ def jackknife(data, measure, n_groups=10):
 
         measure_list.append(measure(sample))
 
-    return np.mean(measure_list), (n_groups - 1) / np.sqrt(n_groups) * np.std(
+    return np.mean(measure_list), 1.96 * np.std(
         measure_list
     )
 

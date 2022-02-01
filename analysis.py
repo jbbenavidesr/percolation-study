@@ -169,6 +169,24 @@ plt.show()
 # graph_probabilities_vs_densities(data, True, "images/prob_density.png")
 graph_probabilities_vs_densities(data)
 
+log_l = [np.log(size - 2) for size in new_data]
+log_avg = [np.log(1 / new_data[size]["avg"]) for size in new_data]
+log_err = [
+    -1 * new_data[size]["avg_err"] / new_data[size]["avg"] for size in new_data
+]
+
+
+linear_model = np.polyfit(log_l[:], log_avg[:], 1)
+lin_func = np.poly1d(linear_model)
+
+
+plt.errorbar(log_l, log_avg, yerr=log_err, linestyle="none", marker=".")
+plt.plot(log_l, lin_func(log_l), label=rf"$\beta /\nu= {linear_model[0].round(3)}$")
+plt.title(r"Determinación del exponente crítico $\beta / \nu$")
+plt.xlabel(r"$\log (L)$")
+plt.ylabel(r"$\log ( \S(L)^{-1})$")
+plt.legend()
+plt.show()
 
 plt.close()
 
