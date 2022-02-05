@@ -10,7 +10,7 @@ from estimators import jackknife, bootstrap
 # plt.style.use("seaborn")
 
 
-data_files = Path("data_jigsaw_no_borders/")
+data_files = Path("data_both/")
 
 def get_size(file):
     file_name = str(file)
@@ -184,7 +184,7 @@ plt.errorbar(log_l, log_avg, yerr=log_err, linestyle="none", marker=".")
 plt.plot(log_l, lin_func(log_l), label=rf"$\beta /\nu= {linear_model[0].round(3)}$")
 plt.title(r"Determinación del exponente crítico $\beta / \nu$")
 plt.xlabel(r"$\log (L)$")
-plt.ylabel(r"$\log ( \S(L)^{-1})$")
+plt.ylabel(r"$\log ( p_{avg}^{-1})$")
 plt.legend()
 plt.show()
 
