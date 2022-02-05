@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sitepercolation import get_random_sequence, get_state_from_sequence
+from percolation.site import SitePercolation
 from clusters import label_cluster
 
 sizes = [4, 8, 16, 32, 64, 128]
@@ -36,7 +36,10 @@ def percolation_density(sequence: np.array, borders: bool = True) -> int:
     i = int(volume / 2)
     step = int(i / 2)
     while True:
-        lattice = get_state_from_sequence(sequence, i, borders)
+        lattice = SitePercolation.state_of_lattice(sequence, i)
+        if not borders:
+            lattice = lattice[1:-1, 1:-1]
+
         if has_percolating_cluster(lattice):
             if step == 0:
                 i = i - 1
@@ -57,20 +60,19 @@ rng = np.random.default_rng(42)
 def run_simulation(
     size: int, num_of_simulations: int, rng: np.random.Generator = None, seed: int = 42
 ) -> np.array:
-    if not rng:
-        rng = np.random.default_rng(seed=seed)
+    perc = SitePercolation(size, rng, seed)
 
     densities = np.zeros(num_of_simulations)
 
     with np.nditer(densities, op_flags=["readwrite"]) as it:
         for simulation in it:
-            sequence = get_random_sequence(size, rng)
+            sequence = perc.random_sequence()
             simulation[...] = percolation_density(sequence)
 
     return densities
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     size = 2048
     number_of_runs = 100

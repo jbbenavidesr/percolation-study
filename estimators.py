@@ -21,23 +21,28 @@ def jackknife(data, measure, n_groups=10):
 
         measure_list.append(measure(sample))
 
-    return np.mean(measure_list), 1.96 * np.std(
-        measure_list
-    )
+    return np.mean(measure_list), 1.96 * np.std(measure_list)
 
 
-def bootstrap(data, measure, sample_size=-1, n_samples=1000):
-    n = len(data)
+def bootstrap(
+    data: np.array,
+    measure,
+    confidence_factor: float = 1.96,
+    sample_size: int = -1,
+    number_of_samples: int = 10000,
+    seed: int = 42,
+):
+    """Bootstrap resampling method for calculating error estimates"""
+    rng = np.random.default_rng(seed=seed)
+
     if sample_size < 0:
-        sample_size = int(len(data) * 0.9)
+        sample_size = len(data)
 
-    measure_list = []
+    measure_list = np.zeros(number_of_samples, dtype=float)
 
-    for _ in range(n_samples):
-        data_group = []
-        for _ in range(sample_size):
-            data_group.append(data[np.random.randint(0, n)])
+    with np.nditer(measure_list, op_flags=["readwrite"]) as it:
+        for item in it:
+            sample = rng.choice(data, size=sample_size)
+            item[...] = measure(sample)
 
-        measure_list.append(measure(data_group))
-
-    return np.mean(measure_list), np.std(measure_list)
+    return measure_list.mean(), confidence_factor * measure_list.std()

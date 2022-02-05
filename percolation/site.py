@@ -25,7 +25,7 @@ class SitePercolation:
         return lattice < occupation_probability
 
     def random_sequence(self) -> np.array:
-        """Ger a random sequence in which sites are occupied."""
+        """Get a random sequence in which sites are occupied."""
 
         sequence = np.arange(self.length**2)
 
