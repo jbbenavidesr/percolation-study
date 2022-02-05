@@ -51,7 +51,7 @@ def get_pi_curve(data):
 
 
 def graph_probabilities_vs_densities(data, save=False, filename="graph.png"):
-    # plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(15, 8))
 
     for size in sorted(data):
 
@@ -120,30 +120,29 @@ def linear_fit_error(
     intercepts = np.zeros(number_of_samples, dtype=float)
 
     if not x_err:
-        for i in number_of_samples:
-            y_samples = rng.normal(y, y_err / error_factor)
+        for i in range(number_of_samples):
+            y_samples = rng.normal(y, y_err)
             lin_model = np.polyfit(x, y_samples, 1)
             slopes[i] = lin_model[0]
             intercepts[i] = lin_model[1]
 
     elif not y_err:
-        for i in number_of_samples:
-            x_samples = rng.normal(x, x_err / error_factor)
+        for i in range(number_of_samples):
+            x_samples = rng.normal(x, x_err)
             lin_model = np.polyfit(x_samples, y, 1)
             slopes[i] = lin_model[0]
             intercepts[i] = lin_model[1]
 
     else:
-        for i in number_of_samples:
-            x_samples = rng.normal(x, x_err / error_factor)
-            y_samples = rng.normal(y, y_err / error_factor)
+        for i in range(number_of_samples):
+            x_samples = rng.normal(x, x_err)
+            y_samples = rng.normal(y, y_err)
             lin_model = np.polyfit(x_samples, y_samples, 1)
             slopes[i] = lin_model[0]
             intercepts[i] = lin_model[1]
 
     return (
-        slopes.mean(),
-        intercepts.mean(),
+        [slopes.mean(), intercepts.mean()],
         1.96 * slopes.std(),
         1.96 * intercepts.std(),
     )
@@ -170,52 +169,71 @@ if __name__ == "__main__":
     log_l = [np.log(size) for size in new_data]
     log_delta = [np.log(1 / new_data[size]["delta"]) for size in new_data]
     log_err = [
-        -1 * new_data[size]["delta_err"] / new_data[size]["delta"] for size in new_data
+        np.abs(-1 * new_data[size]["delta_err"] / new_data[size]["delta"])
+        for size in new_data
     ]
 
-    linear_model = np.polyfit(log_l[7:], log_delta[7:], 1)
+    linear_model, slope_err, intercept_err = linear_fit_error(
+        log_l[5:], log_delta[5:], y_err=log_err[5:]
+    )
     lin_func = np.poly1d(linear_model)
 
+    print(slope_err, intercept_err)
+
     plt.errorbar(log_l, log_delta, yerr=log_err, linestyle="none", marker=".")
-    plt.plot(log_l, lin_func(log_l), label=rf"$1 / \nu= {linear_model[0].round(3)}$")
+    plt.plot(
+        log_l,
+        lin_func(log_l),
+        label=rf"$1 / \nu= {linear_model[0].round(3)} \pm {slope_err.round(3)}$",
+    )
     plt.title(r"Determinación del exponente crítico $\nu$")
     plt.xlabel(r"$\log (L)$")
     plt.ylabel(r"$\log ( \Delta(L)^{-1})$")
     plt.legend()
-    plt.show()
-    # plt.savefig("images/nu_determination.png")
+    # plt.show()
+    plt.savefig("images/nu_determination.png")
 
     delta = [new_data[size]["delta"] for size in new_data]
     avg = [new_data[size]["avg"] for size in new_data]
     delta_err = [new_data[size]["delta_err"] for size in new_data]
     avg_err = [new_data[size]["avg_err"] for size in new_data]
 
-    linear_model = np.polyfit(delta[7:], avg[7:], 1)
+    linear_model, slope_err, intercept_err = linear_fit_error(
+        delta[4:], avg[4:], x_err=delta_err[4:], y_err=avg_err[4:]
+    )
     lin_func = np.poly1d(linear_model)
+
+    print(slope_err, intercept_err)
 
     plt.close()
     plt.errorbar(delta, avg, xerr=delta_err, yerr=avg_err, linestyle="none", marker=".")
     plt.plot(
-        delta, lin_func(delta), label=rf"$ p_{{crit}} = {linear_model[1].round(4)}$"
+        delta,
+        lin_func(delta),
+        label=rf"$ p_{{crit}} = {linear_model[1].round(4)} \pm {intercept_err.round(4)}$",
     )
     plt.title("Determinación del punto crítico")
     plt.xlabel(r"$\Delta (L)$")
     plt.ylabel(r"$p_{avg}(L)$")
     plt.legend()
-    plt.show()
-    # plt.savefig("images/_crit_density_determination.png")
+    # plt.show()
+    plt.savefig("images/crit_density_determination.png")
 
-    # graph_probabilities_vs_densities(data, True, "images/prob_density.png")
-    graph_probabilities_vs_densities(data)
+    graph_probabilities_vs_densities(data, True, "images/prob_density.png")
+    # graph_probabilities_vs_densities(data)
 
     log_l = [np.log(size) for size in new_data]
     log_avg = [np.log(1 / new_data[size]["avg"]) for size in new_data]
     log_err = [
-        -1 * new_data[size]["avg_err"] / new_data[size]["avg"] for size in new_data
+        np.abs(-1 * new_data[size]["avg_err"] / new_data[size]["avg"])
+        for size in new_data
     ]
 
-    linear_model = np.polyfit(log_l[5:], log_avg[5:], 1)
+    linear_model, slope_err, intercept_err = linear_fit_error(
+        log_l[:], log_avg[:], y_err=log_err[:]
+    )
     lin_func = np.poly1d(linear_model)
+    print(slope_err, intercept_err)
 
     plt.errorbar(log_l, log_avg, yerr=log_err, linestyle="none", marker=".")
     plt.plot(log_l, lin_func(log_l), label=rf"$\beta /\nu= {linear_model[0].round(3)}$")
@@ -223,7 +241,7 @@ if __name__ == "__main__":
     plt.xlabel(r"$\log (L)$")
     plt.ylabel(r"$\log ( p_{avg}^{-1})$")
     plt.legend()
-    plt.show()
+    # plt.show()
 
     plt.close()
 
