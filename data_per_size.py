@@ -31,7 +31,7 @@ def get_densities(size, borders=True):
 
 
 if __name__ == "__main__":
-    sizes = [36, 64, 121, 256, 529]
+    sizes = [36, 64, 121, 256, 529, 1024]
     borders = False
 
     for size in sizes:
