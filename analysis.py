@@ -150,7 +150,7 @@ def linear_fit_error(
 
 if __name__ == "__main__":
 
-    path = "data/both/"
+    path = "data/jigsaw_borders/"
 
     data = load_data(path)
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     ]
 
     linear_model, slope_err, intercept_err = linear_fit_error(
-        log_l[5:], log_delta[5:], y_err=log_err[5:]
+        log_l[2:], log_delta[2:], y_err=log_err[2:]
     )
     lin_func = np.poly1d(linear_model)
 
@@ -190,8 +190,8 @@ if __name__ == "__main__":
     plt.xlabel(r"$\log (L)$")
     plt.ylabel(r"$\log ( \Delta(L)^{-1})$")
     plt.legend()
-    # plt.show()
-    plt.savefig("images/nu_determination.png")
+    plt.show()
+    # plt.savefig("images/nu_jigsaw.png")
 
     delta = [new_data[size]["delta"] for size in new_data]
     avg = [new_data[size]["avg"] for size in new_data]
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     avg_err = [new_data[size]["avg_err"] for size in new_data]
 
     linear_model, slope_err, intercept_err = linear_fit_error(
-        delta[4:], avg[4:], x_err=delta_err[4:], y_err=avg_err[4:]
+        delta[:], avg[:], x_err=delta_err[:], y_err=avg_err[:]
     )
     lin_func = np.poly1d(linear_model)
 
@@ -216,11 +216,12 @@ if __name__ == "__main__":
     plt.xlabel(r"$\Delta (L)$")
     plt.ylabel(r"$p_{avg}(L)$")
     plt.legend()
-    # plt.show()
-    plt.savefig("images/crit_density_determination.png")
+    plt.show()
+    # plt.savefig("images/crit_density_jigsaw.png")
 
-    graph_probabilities_vs_densities(data, True, "images/prob_density.png")
-    # graph_probabilities_vs_densities(data)
+    plt.close()
+    # graph_probabilities_vs_densities(data, True, "images/prob_density_jigsaw.png")
+    graph_probabilities_vs_densities(data)
 
     log_l = [np.log(size) for size in new_data]
     log_avg = [np.log(1 / new_data[size]["avg"]) for size in new_data]
@@ -235,24 +236,29 @@ if __name__ == "__main__":
     lin_func = np.poly1d(linear_model)
     print(slope_err, intercept_err)
 
+    plt.close()
     plt.errorbar(log_l, log_avg, yerr=log_err, linestyle="none", marker=".")
-    plt.plot(log_l, lin_func(log_l), label=rf"$\beta /\nu= {linear_model[0].round(3)}$")
+    plt.plot(
+        log_l,
+        lin_func(log_l),
+        label=rf"$\beta /\nu= {linear_model[0].round(3)} \pm {slope_err.round(3)}$",
+    )
     plt.title(r"Determinación del exponente crítico $\beta / \nu$")
     plt.xlabel(r"$\log (L)$")
     plt.ylabel(r"$\log ( p_{avg}^{-1})$")
     plt.legend()
-    # plt.show()
+    plt.show()
+    # plt.savefig("images/betta_jigsaw.png")
 
     plt.close()
 
-"""
     steps = np.linspace(0, 1, 150)
 
     for size in sorted(data):
         fig, ax1 = plt.subplots()
         ax1.hist(
             data[size],
-            bins=int(np.sqrt(len(data[size])) + 1),
+            bins=int(np.sqrt(len(data[size])) + 2),
             density=True,
             histtype="step",
         )
@@ -263,4 +269,3 @@ if __name__ == "__main__":
 
         plt.title(size)
         plt.show()
-"""

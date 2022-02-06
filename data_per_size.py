@@ -32,12 +32,12 @@ def get_densities(size, borders=True):
 
 if __name__ == "__main__":
     sizes = [36, 64, 121, 256, 529]
-    borders = True
+    borders = False
 
     for size in sizes:
         densities = get_densities(size, borders)
         np.savetxt(
-            # f"data/jigsaw{'_borders' if borders else ''}/size{int(np.sqrt(size)) - 2 * (not borders)}.txt",
-            f"data/jigsaw_center/size{int(np.sqrt(size))}.txt",
+            f"data/jigsaw{'_borders' if borders else ''}/size{int(np.sqrt(size)) - 2 * (not borders)}.txt",
+            # f"data/jigsaw_center/size{int(np.sqrt(size))}.txt",
             densities,
         )

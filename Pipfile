@@ -12,6 +12,8 @@ scipy = "*"
 [dev-packages]
 black = "*"
 pylint = "*"
+jupyter = "*"
+notebook = "*"
 
 [requires]
 python_version = "3.9"

@@ -11,38 +11,39 @@ def has_percolating_cluster(lattice: np.array) -> bool:
 
     clusters = label_cluster(lattice)
 
-    # # Check first and last row
+    # Check first and last row
     row_start = clusters[0]
     row_end = clusters[-1]
-    # vertical_cluster = (
-    #     np.isin(row_start[np.nonzero(row_start)], row_end[np.nonzero(row_end)]).sum()
-    #     > 0
-    # )
-
-    # # Check first and last column
-    col_start = clusters[:, 0]
-    col_end = clusters[:, -1]
-    # horizontal_cluster = (
-    #     np.isin(col_start[np.nonzero(col_start)], col_end[np.nonzero(col_end)]).sum()
-    #     > 0
-    # )
-
-    center = clusters[int(len(col_start) / 2), int(len(row_start) / 2)]
-    print(center)
-
-    return (
-        center in row_start
-        or center in row_end
-        or center in col_start
-        or center in col_end
+    vertical_cluster = (
+        np.isin(row_start[np.nonzero(row_start)], row_end[np.nonzero(row_end)]).sum()
+        > 0
     )
 
-    # return vertical_cluster and horizontal_cluster
+    # Check first and last column
+    col_start = clusters[:, 0]
+    col_end = clusters[:, -1]
+    horizontal_cluster = (
+        np.isin(col_start[np.nonzero(col_start)], col_end[np.nonzero(col_end)]).sum()
+        > 0
+    )
+
+    # center = clusters[int(len(col_start) / 2), int(len(row_start) / 2)]
+    # print(center)
+
+    # return (
+    #     center in row_start
+    #     or center in row_end
+    #     or center in col_start
+    #     or center in col_end
+    # )
+
+    return vertical_cluster and horizontal_cluster
 
 
 def percolation_density(sequence: np.array, borders: bool = True) -> int:
     """Determine de density at which a given sequence percolates"""
     volume = len(sequence)
+
     i = int(volume / 2)
     step = int(i / 2)
     while True:
@@ -59,7 +60,9 @@ def percolation_density(sequence: np.array, borders: bool = True) -> int:
             step = int(step / 2)
         else:
             if step == 0:
-                return (i + 1) / volume
+                if not borders:
+                    volume = volume - 4 * (np.sqrt(volume) - 1)
+                return (lattice.sum() + 1) / volume
             i = i + step
             step = int(step / 2)
 
