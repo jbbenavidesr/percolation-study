@@ -27,7 +27,6 @@ def jackknife(data, measure, n_groups=10):
 def bootstrap(
     data: np.array,
     measure,
-    confidence_factor: float = 1.96,
     sample_size: int = -1,
     number_of_samples: int = 10000,
     seed: int = 42,
@@ -45,4 +44,4 @@ def bootstrap(
             sample = rng.choice(data, size=sample_size)
             item[...] = measure(sample)
 
-    return measure_list.mean(), confidence_factor * measure_list.std()
+    return measure_list.mean(), measure_list.std()
