@@ -143,8 +143,8 @@ def linear_fit_error(
 
     return (
         [slopes.mean(), intercepts.mean()],
-        1.96 * slopes.std(),
-        1.96 * intercepts.std(),
+        1.96 * slopes.std() / np.sqrt(number_of_samples),
+        1.96 * intercepts.std() / np.sqrt(number_of_samples),
     )
 
 
